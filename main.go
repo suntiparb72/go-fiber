@@ -27,6 +27,7 @@ func main() {
 
 	app.Get("/books", getBooks)
 	app.Get("/books/:id", getBook)
+	app.Post("/books", createBooks)
 
 	app.Listen("localhost:8080")
 }
@@ -53,4 +54,16 @@ func getBook(c *fiber.Ctx) error {
 		}
 	}
 	return c.Status(fiber.StatusNotFound).SendString("Not found eiei")
+}
+func createBooks(c *fiber.Ctx) error {
+	// c.Params()
+	book := new(Book)
+
+	// check err before use BodyParser
+	if err := c.BodyParser(book); err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+	}
+	books = append(books, *book)
+
+	return c.JSON(book)
 }
