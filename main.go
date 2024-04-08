@@ -16,14 +16,13 @@ var books []Book
 
 func main() {
 	app := fiber.New()
+
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello World!")
 	})
 
 	books = append(books, Book{ID: 1, Title: "Suntiparb", Author: "Pae"})
-	books = append(books, Book{ID: 2, Title: "MM", Author: "Pae"})
-
-	// print(books)
+	books = append(books, Book{ID: 2, Title: "goFiber", Author: "Pae"})
 
 	app.Get("/books", getBooks)
 	app.Get("/books/:id", getBook)
@@ -38,18 +37,14 @@ func getBooks(c *fiber.Ctx) error {
 }
 
 func getBook(c *fiber.Ctx) error {
-
 	// convert string => int
 	bookId, err := strconv.Atoi(c.Params("id"))
 
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
-	// return c.SendString(bookId)
-	// return c.JSON(books[0])
 
 	for _, book := range books {
-		// fmt.Printf("%+v\n", book)
 		if book.ID == bookId {
 			return c.JSON(book)
 		}
@@ -58,7 +53,7 @@ func getBook(c *fiber.Ctx) error {
 }
 
 func createBook(c *fiber.Ctx) error {
-	// c.Params()
+
 	book := new(Book)
 
 	// check err before use BodyParser
@@ -73,13 +68,11 @@ func createBook(c *fiber.Ctx) error {
 func updateBook(c *fiber.Ctx) error {
 
 	bookId, err := strconv.Atoi(c.Params("id"))
-
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 
 	bookUpdate := new(Book)
-
 	if err := c.BodyParser(bookUpdate); err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
@@ -91,7 +84,5 @@ func updateBook(c *fiber.Ctx) error {
 			c.JSON(books[i])
 		}
 	}
-
 	return c.SendStatus(fiber.StatusNotFound)
-
 }
