@@ -28,6 +28,7 @@ func main() {
 	app.Get("/books/:id", getBook)
 	app.Post("/books", createBook)
 	app.Put("/books/:id", updateBook)
+	app.Delete("/books/:id", deleteBook)
 
 	app.Listen("localhost:8080")
 }
@@ -68,6 +69,7 @@ func createBook(c *fiber.Ctx) error {
 func updateBook(c *fiber.Ctx) error {
 
 	bookId, err := strconv.Atoi(c.Params("id"))
+
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
@@ -85,4 +87,23 @@ func updateBook(c *fiber.Ctx) error {
 		}
 	}
 	return c.SendStatus(fiber.StatusNotFound)
+}
+
+func deleteBook(c *fiber.Ctx) error {
+
+	bookId, err := strconv.Atoi(c.Params("id"))
+
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+	}
+
+	for i, book := range books {
+		if book.ID == bookId {
+			books = append(books[:i], books[i+1:]...)
+			return c.SendStatus(fiber.StatusNoContent)
+		}
+	}
+
+	return c.SendStatus(fiber.StatusNotFound)
+
 }
