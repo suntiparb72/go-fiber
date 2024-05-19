@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -16,12 +18,34 @@ type Book struct {
 
 var books []Book
 
+type User struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+var testUser = User{
+	Email:    "suntiparb",
+	Password: "1234",
+}
+
+func checkMiddleware(c *fiber.Ctx) error {
+	time := time.Now()
+
+	fmt.Printf("URL: %s, Method: %s, Time:%s, \n", c.OriginalURL(), c.Method(), time)
+
+	return c.Next()
+}
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Load .env error")
 	}
 
 	app := fiber.New()
+
+	app.Post("/login", login)
+
+	app.Use(checkMiddleware)
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello World!")
@@ -63,5 +87,20 @@ func getEnv(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"secret": os.Getenv("SECRET"),
+	})
+}
+
+func login(c *fiber.Ctx) error {
+	user := new(User)
+	if err := c.BodyParser(user); err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+	}
+
+	if user.Email != testUser.Email || user.Password != testUser.Password {
+		return fiber.ErrUnauthorized
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "login success",
 	})
 }
