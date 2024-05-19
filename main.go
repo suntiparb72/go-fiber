@@ -1,7 +1,11 @@
 package main
 
 import (
+	"log"
+	"os"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 )
 
 type Book struct {
@@ -13,6 +17,10 @@ type Book struct {
 var books []Book
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Load .env error")
+	}
+
 	app := fiber.New()
 
 	app.Get("/", func(c *fiber.Ctx) error {
@@ -29,6 +37,8 @@ func main() {
 	app.Delete("/books/:id", deleteBook)
 
 	app.Post("/upload", uploadFile)
+
+	app.Get("/config", getEnv)
 
 	app.Listen("localhost:8080")
 }
@@ -47,4 +57,11 @@ func uploadFile(c *fiber.Ctx) error {
 	}
 
 	return c.SendString("File upload complete!")
+}
+
+func getEnv(c *fiber.Ctx) error {
+
+	return c.JSON(fiber.Map{
+		"secret": os.Getenv("SECRET"),
+	})
 }
