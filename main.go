@@ -8,6 +8,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
+
+	jwtware "github.com/gofiber/jwt/v2"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type Book struct {
@@ -46,6 +49,11 @@ func main() {
 	app.Post("/login", login)
 
 	app.Use(checkMiddleware)
+
+	// JWT Middleware
+	app.Use(jwtware.New(jwtware.Config{
+		SigningKey: []byte(os.Getenv("JWT_SECRET")),
+	}))
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello World!")
@@ -100,7 +108,23 @@ func login(c *fiber.Ctx) error {
 		return fiber.ErrUnauthorized
 	}
 
+	// Create token
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	// Set claims
+	claims := token.Claims.(jwt.MapClaims)
+	claims["email"] = user.Email
+	claims["admin"] = true
+	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+
 	return c.JSON(fiber.Map{
 		"message": "login success",
+		"token":   t,
 	})
 }
